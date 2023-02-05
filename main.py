@@ -1,17 +1,16 @@
-from fastapi import FastAPI
-from urllib.parse import unquote
-from fastapi import Request, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from slowapi.errors import RateLimitExceeded
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from PrintWrapper import PrintManager
-from fastapi.middleware.cors import CORSMiddleware
+import os
 import PIL
 import uvicorn
-import os
+from urllib.parse import unquote
+from PrintWrapper import PrintManager
+from fastapi.responses import JSONResponse
+from slowapi.util import get_remote_address
+from fastapi import FastAPI, Request, status
+from slowapi.errors import RateLimitExceeded
+from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from slowapi import Limiter, _rate_limit_exceeded_handler
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -26,8 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-p = PrintManager(0x04b8, 0x0202)
-
 API_SECRET = os.environ.get("API_SECRET")
 
 @app.get("/")
@@ -36,7 +33,7 @@ async def root():
 
 
 @app.exception_handler(RequestValidationError)
-@limiter.limit("3/minute")
+@limiter.limit("2/minute")
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -45,10 +42,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 @app.get("/print")
-@limiter.limit("3/minute")
+@limiter.limit("2/minute")
 async def print(request: Request, text: str, cut: bool = False):
     text = unquote(text)
-
+    p = PrintManager(0x04b8, 0x0202)
     my_header = request.headers.get('x-PrintRAPI-key')
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
@@ -64,9 +61,10 @@ async def print(request: Request, text: str, cut: bool = False):
 
 
 @app.get("/pmarkdown")
-@limiter.limit("3/minute")
+@limiter.limit("2/minute")
 async def pmarkdown(request: Request, doc: str):
     my_header = request.headers.get('x-PrintRAPI-key')
+    p = PrintManager(0x04b8, 0x0202)
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
     if len(doc) > 2000:
@@ -81,9 +79,10 @@ async def pmarkdown(request: Request, doc: str):
 
 
 @app.get("/part")
-@limiter.limit("3/minute")
+@limiter.limit("2/minute")
 async def part(request: Request, doc: str):
     my_header = request.headers.get('x-PrintRAPI-key')
+    p = PrintManager(0x04b8, 0x0202)
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
     print_status = "ok"
@@ -94,9 +93,10 @@ async def part(request: Request, doc: str):
 
 
 @app.get("/cut")
-@limiter.limit("3/minute")
+@limiter.limit("2/minute")
 async def cut(request: Request, ):
     my_header = request.headers.get('x-PrintRAPI-key')
+    p = PrintManager(0x04b8, 0x0202)
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
 
@@ -105,9 +105,10 @@ async def cut(request: Request, ):
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder({"status": "ok"}))
 
 @app.get("/image")
-@limiter.limit("3/minute")
+@limiter.limit("2/minute")
 async def image(request: Request, ):
     my_header = request.headers.get('x-PrintRAPI-key')
+    p = PrintManager(0x04b8, 0x0202)
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
     img = PIL.Image.open("image.png")
