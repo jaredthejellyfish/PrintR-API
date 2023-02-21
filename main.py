@@ -19,7 +19,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins="*",
+    allow_origins='https://printer.jaredthejelly.me',
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,7 +46,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def print(request: Request, text: str, cut: bool = False):
     text = unquote(text)
     p = PrintManager(0x04b8, 0x0202)
-    my_header = request.headers.get('x-PrintRAPI-key')
+    my_header = request.headers.get('x-printrapi-key')
+
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
 
@@ -63,8 +64,9 @@ async def print(request: Request, text: str, cut: bool = False):
 @app.get("/pmarkdown")
 @limiter.limit("2/minute")
 async def pmarkdown(request: Request, doc: str):
-    my_header = request.headers.get('x-PrintRAPI-key')
-    p = PrintManager(0x04b8, 0x0202)
+    my_header = request.headers.get('x-printrapi-key')
+    #p = PrintManager(0x04b8, 0x0202)
+
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
     if len(doc) > 2000:
@@ -81,7 +83,8 @@ async def pmarkdown(request: Request, doc: str):
 @app.get("/part")
 @limiter.limit("2/minute")
 async def part(request: Request, doc: str):
-    my_header = request.headers.get('x-PrintRAPI-key')
+    my_header = request.headers.get('x-printrapi-key')
+
     p = PrintManager(0x04b8, 0x0202)
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
@@ -95,7 +98,7 @@ async def part(request: Request, doc: str):
 @app.get("/cut")
 @limiter.limit("2/minute")
 async def cut(request: Request, ):
-    my_header = request.headers.get('x-PrintRAPI-key')
+    my_header = request.headers.get('x-printrapi-key')
     p = PrintManager(0x04b8, 0x0202)
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
@@ -107,7 +110,7 @@ async def cut(request: Request, ):
 @app.get("/image")
 @limiter.limit("2/minute")
 async def image(request: Request, ):
-    my_header = request.headers.get('x-PrintRAPI-key')
+    my_header = request.headers.get('x-printrapi-key')
     p = PrintManager(0x04b8, 0x0202)
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
@@ -118,4 +121,4 @@ async def image(request: Request, ):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8899, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=8899, log_level="debug")
