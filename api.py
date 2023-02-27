@@ -21,7 +21,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins='https://printer.jaredthejelly.me',
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
