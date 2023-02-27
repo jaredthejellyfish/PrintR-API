@@ -29,7 +29,7 @@ API_SECRET = os.environ.get("API_SECRET")
 
 @app.get("/")
 async def root():
-    return {"response": f"Hello, welcome to this receipt printing API! {API_SECRET}"}
+    return {"response": f"Hello, welcome to this receipt printing API!"}
 
 
 @app.exception_handler(RequestValidationError)
@@ -65,7 +65,7 @@ async def print(request: Request, text: str, cut: bool = False):
 @limiter.limit("2/minute")
 async def pmarkdown(request: Request, doc: str):
     my_header = request.headers.get('x-printrapi-key')
-    #p = PrintManager(0x04b8, 0x0202)
+    p = PrintManager(0x04b8, 0x0202)
 
     if my_header != API_SECRET:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content=jsonable_encoder({"error": "unauthorized"}))
